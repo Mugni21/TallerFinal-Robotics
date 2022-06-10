@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import rospy
+from pynput.keyboard import Key, Listener
+from std_msgs.msg import String
+
+# globals
+current_msg = "N"
+
+estado_msg = "neutral"
+
+#speed = 0
+#angular = 0
+
+# define key press event callback
+def on_press(key):
+    global estado_msg
+    global current_msg
+    try:
+        k = key.char  # single-char keys
+    except:
+        k = key.name  # other keys
+    if (k == "r"):
+        current_msg = "R"
+        estado_msg = "Sumar Angulo"
+    elif (k == "f"):
+        current_msg = "F"
+        estado_msg = "Restar Angulo"
+    elif (k == "t"):
+        current_msg = "T"
+        estado_msg = "Sumar distancia"
+    elif (k == "g"):
+        current_msg = "G"
+        estado_msg = "Restar distancia"
+    elif (k == "y"):
+        current_msg = "Y"
+        estado_msg = "Cerrar pinza"
+    elif (k == "h"):
+        current_msg = "H"
+        estado_msg = "Abrir pinza"
+
+# define key release event callback
+def on_release(key):
+    global estado_msg
+    global current_msg
+
+    current_msg = "N"
+
+    estado_msg = "neutral"
+
+
+# main section
+if __name__ == "__main__":
+    # setup ros publisher
+    pub = rospy.Publisher('Manipulator_Velocidad', String, queue_size=10) # name of     topic: /trutlebot
+    rospy.init_node('Flash_cmdVel', anonymous=True) # name of node: /keyboard_input
+
+    #pub2 = rospy.Publisher('turtlebot_comando', String, queue_size=10)
+
+    rate = rospy.Rate(10) # publish messages at 10Hz
+
+    #print("Let's move your robot")
+    #speed = float(input("Input your linear speed:"))
+    #angular = float(input("Input your angular speed:"))
+
+    # setup keyboard listener
+    listener = Listener(on_press=on_press, on_release=on_release, suppress=False)
+    listener.start()
+
+    # MAIN LOOP
+    # endlessly react on keyboard events and send appropriate messages
+    while listener.running and not rospy.is_shutdown():
+        rospy.loginfo(estado_msg)
+        pub.publish(current_msg)
+        #pub2.publish(current_msg)
+        rate.sleep()

@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+
+import rospy
+import numpy as np
+
+from std_msgs.msg import String
+import time
+
+# setup ros publisher
+pub = rospy.Publisher('Manipulator_Velocidad', String, queue_size=10) # name of topic:
+deltheta=0.68/28
+delR=0.06333
+pinza_agarrar = 31
+
+def callback(goal_pos_msg):
+
+    #Se debe ingresar la posicion objetico como x,y
+    xgoal=float(str(goal_pos_msg.data).split(",")[0])
+    ygoal = float(str(goal_pos_msg.data).split(",")[1])
+    Rgoal=((xgoal**2)+(ygoal**2))**(1/2)
+    thetagoal=np.arctan(ygoal/xgoal)
+    
+    errtheta=thetagoal-(np.pi)/2
+    errR=Rgoal-25
+    
+    Pasostheta=round(errtheta/deltheta)
+    PasosR=round(errR/delR)
+    #for j in range(40):
+        #pub.publish('F')
+        #time.sleep(1)
+        #rospy.loginfo(j)
+    	
+    if Pasostheta>=0:
+        for i in range(int(abs(Pasostheta))):
+            rospy.loginfo('R')
+            pub.publish("R")
+            time.sleep(1/5)
+    elif Pasostheta<0:
+        for i in range(int(abs(Pasostheta))):
+            pub.publish("F")
+            rospy.loginfo('F')
+            time.sleep(1/5)
+    if PasosR>=0:
+        for i in range(int(abs(PasosR))):
+            pub.publish("T")
+            rospy.loginfo('T')
+            time.sleep(1/5)
+    elif PasosR<0:
+        for i in range(int(abs(PasosR))):
+            pub.publish("G")
+            rospy.loginfo('G')
+            time.sleep(1/5)
+    for i in range(pinza_agarrar-1):	    
+        pub.publish("Y")
+        rospy.loginfo('Y')
+        time.sleep(1/5)
+def listener():
+    
+    
+    # In ROS, nodes are uniquely named. If two nodes with the same
+    # name are launched, the previous one is kicked off. The
+    # anonymous=True flag means that rospy will choose a unique
+    # name for our 'listener' node so that multiple listeners can
+    # run simultaneously.
+    rospy.init_node('robot_planner', anonymous=True)
+
+    rospy.Subscriber("robot_manipulador_goal", String, callback)
+    
+    # setup ros publisher
+    #pub = rospy.Publisher('Flash_bot_position', String, queue_size=10) # name of topic: /trutlebot
+    
+    rate = rospy.Rate(10) # publish messages at 10Hz
+    
+    # spin() simply keeps python from exiting until this node is stopped
+    
+    
+    #rospy.loginfo(str(x)+", "+str(y))
+    
+    
+    rospy.spin()
+        
+
+if __name__ == '__main__':
+    try:
+        listener()
+    except rospy.ROSInterruptException:
+        pass

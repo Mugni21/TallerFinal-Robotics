@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+import rospy
+#from geometry_msgs.msg import Twist
+from std_msgs.msg import String
+import numpy as np
+   
+goal_msg = ""
+decision_x = 0
+decision_y = 25
+
+def talker():
+
+    # In ROS, nodes are uniquely named. If two nodes with the same
+    # name are launched, the previous one is kicked off. The
+    # anonymous=True flag means that rospy will choose a unique
+    # name for our 'listener' node so that multiple listeners can
+    # run simultaneously.
+    pub = rospy.Publisher('robot_manipulador_goal', String, queue_size=10)
+    rospy.init_node('publicar_goal', anonymous=True)
+    
+    rate = rospy.Rate(10) # publish messages at 10Hz
+    
+    goal_msg = str(decision_x)+","+str(decision_y)
+    #rospy.Subscriber("turtlebot_cmdVel", Twist, velocidades)
+
+    pub.publish(goal_msg)
+
+	
+
+    # spin() simply keeps python from exiting until this node is stopped
+    rospy.spin()
+
+if __name__ == '__main__':
+    decision_x = input("Ingrese la coordenada x:  ")
+    decision_y = input("Ingrese la coordenada y:  ")
+    try:
+        talker()
+    except rospy.ROSInterruptException:
+        pass
